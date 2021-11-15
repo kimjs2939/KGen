@@ -34,7 +34,7 @@ def report(testDB):
     print( '# of failed tests: %d'%nfailed )
     print( '' )
 
-    for testid, result in testDB.iteritems():
+    for testid, result in testDB.items():
         if result['general']['passed']:
             pass
         else:

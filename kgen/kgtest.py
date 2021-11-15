@@ -6,7 +6,7 @@ import sys
 
 class KGenTest(object):
 
-    (NOT_EXECUTED, FAILED, PASSED) = range(3)
+    (NOT_EXECUTED, FAILED, PASSED) = list(range(3))
     TEST_NUM = 0
 
 

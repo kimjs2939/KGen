@@ -13,7 +13,7 @@ class CoverTest(KGenTest):
     def run_coverage(self, target, namepath, *args, **kwargs):
 
         cmds = [ '%s/bin/coverage'%self.KGEN_HOME ]
-        for kw, kwarg in kwargs.iteritems():
+        for kw, kwarg in kwargs.items():
             flag = kw.replace('_', '-').replace('UNDERSCORE', '_')
             cmds.append('%s %s'%(flag, kwarg))
         cmds.append('%s:%s'%(target, namepath))
@@ -30,7 +30,7 @@ class CoverTest(KGenTest):
                 for cmd in cmds[:-1]:
                     f.write('    %s \\\n'%cmd)
                 f.write('    %s'%cmds[-1])
-            os.chmod('%s/kgen_cmds.sh'%self.TEST_DIR, 0755)
+            os.chmod('%s/kgen_cmds.sh'%self.TEST_DIR, 0o755)
 
         if not out or out.find('ERROR')>=0 or out.find('CRITICAL')>=0 or err or retcode!=0:
             return False, out, err

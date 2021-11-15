@@ -9,7 +9,7 @@ class KExtTest(KGenTest):
     def extract_kernel(self, target, namepath, *args, **kwargs):
 
         cmds = [ '%s/bin/kgen'%self.KGEN_HOME ]
-        for kw, kwarg in kwargs.iteritems():
+        for kw, kwarg in kwargs.items():
             flag = kw.replace('_', '-').replace('UNDERSCORE', '_')
             cmds.append('%s %s'%(flag, kwarg))
         if namepath:
@@ -31,7 +31,7 @@ class KExtTest(KGenTest):
                 for cmd in cmds[:-1]:
                     f.write('    %s \\\n'%cmd)
                 f.write('    %s'%cmds[-1])
-            os.chmod(kgenscript, 0755)
+            os.chmod(kgenscript, 0o755)
 
         if not out or out.find('ERROR')>=0 or out.find('CRITICAL')>=0 or retcode!=0:
             return False, out, err

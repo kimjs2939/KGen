@@ -130,7 +130,7 @@ class KAppSysYSHommeGnuTest(KAppSysYSHommeTest):
                     for cmd in cmake_cmd[:-1]:
                         f.write('    %s \\\n'%cmd)
                     f.write('    %s &> config.log'%cmake_cmd[-1])
-                os.chmod('%s/config_cmds.sh'%blddir, 0755)
+                os.chmod('%s/config_cmds.sh'%blddir, 0o755)
 
             out, err, retcode = run_shcmd('%s; %s'%('; '.join(prerun_cmds), ' '.join(cmake_cmd)), cwd=blddir)
 

@@ -11,7 +11,7 @@ class KAppTest(KGenTest):
 
         outdir = '.'
         cmds = [ '%s/bin/kgen'%self.KGEN_HOME ]
-        for kw, kwarg in kwargs.iteritems():
+        for kw, kwarg in kwargs.items():
             flag = kw.replace('_', '-').replace('UNDERSCORE', '_')
             cmds.append('%s %s'%(flag, kwarg))
             if flag=='--outdir':
@@ -31,7 +31,7 @@ class KAppTest(KGenTest):
                 for cmd in cmds[:-1]:
                     f.write('    %s \\\n'%cmd)
                 f.write('    %s'%cmds[-1])
-            os.chmod('%s/kgen_cmds.sh'%outdir, 0755)
+            os.chmod('%s/kgen_cmds.sh'%outdir, 0o755)
 
         out, err, retcode = run_shcmd(' '.join(cmds))
 

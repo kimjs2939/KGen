@@ -23,12 +23,12 @@ __all__ = ['BeginSource','Module','PythonModule','Program','BlockData','Interfac
 import re
 import sys
 
-from base_classes import BeginStatement, EndStatement, Statement,\
-     AttributeHolder, ProgramBlock, Variable
-from readfortran import Line
-from utils import split_comma, filter_stmts, parse_bind, parse_result, AnalyzeError, is_name
+from .base_classes import BeginStatement, EndStatement, Statement,\
+    AttributeHolder, ProgramBlock, Variable
+from .readfortran import Line
+from .utils import split_comma, filter_stmts, parse_bind, parse_result, AnalyzeError, is_name
 
-import Fortran2003 # KGEN addition
+from . import Fortran2003 # KGEN addition
 import logging # KGEN addition
 logger = logging.getLogger('kgen') # KGEN addition
 
@@ -39,7 +39,7 @@ class HasImplicitStmt(object):
     def get_type_by_name(self, name):
         implicit_rules = self.a.implicit_rules
         if implicit_rules is None:
-            raise AnalyzeError,'Implicit rules mapping is null while getting %r type' % (name)
+            raise AnalyzeError('Implicit rules mapping is null while getting %r type' % (name))
         l = name[0].lower()
         if l in implicit_rules:
             return implicit_rules[l]
@@ -477,7 +477,7 @@ class Program(BeginStatement, ProgramBlock,
                 stmt = content.pop(0)
                 while isinstance (stmt, Comment):
                     stmt = content.pop(0)
-                assert isinstance(stmt, self.end_stmt_cls),`stmt`
+                assert isinstance(stmt, self.end_stmt_cls),repr(stmt)
             elif isinstance(stmt, self.end_stmt_cls):
                 continue
             else:
@@ -569,8 +569,8 @@ class Interface(BeginStatement, HasAttributes, HasImplicitStmt, HasUseStmt,
 
     # start of KGEN
     def resolve(self, request):
-        from kgparse import ResState
-        from kgsearch import f2003_search_unknowns
+        from .kgparse import ResState
+        from .kgsearch import f2003_search_unknowns
 
         if request is None: return
 
@@ -592,7 +592,7 @@ class Interface(BeginStatement, HasAttributes, HasImplicitStmt, HasUseStmt,
             for _stmt, _depth in walk(request.res_stmt, -1):
                 if not hasattr(_stmt, 'unknowns'):
                     f2003_search_unknowns(_stmt, _stmt.f2003)
-                for unk, req in _stmt.unknowns.iteritems():
+                for unk, req in _stmt.unknowns.items():
                     if req.state != ResState.RESOLVED:
                         _stmt.resolve(req) 
 
@@ -725,7 +725,7 @@ class SubProgramStatement(BeginStatement, ProgramBlock,
         if not tosubr:
             if isinstance(self, Statement):
                 if hasattr(self, 'typedecl') and self.typedecl is not None:
-                    assert isinstance(self, Function),`self.__class__.__name__`
+                    assert isinstance(self, Function),repr(self.__class__.__name__)
                     if not hasattr(self, 'result_in_typedecl') or not self.result_in_typedecl:
                         s += self.typedecl.tostr() + ' '
                 elif hasattr(self.parent, 'funcresult_in_stmt') and self.name in self.parent.funcresult_in_stmt.keys():
@@ -751,14 +751,14 @@ class SubProgramStatement(BeginStatement, ProgramBlock,
         line = item.get_line()
         m = self.match(line)
         i = line.lower().find(clsname)
-        assert i!=-1,`clsname, line`
+        assert i!=-1,'{},{}'.format(clsname, line)
         self.prefix = line[:i].rstrip()
         self.name = line[i:m.end()].lstrip()[len(clsname):].strip()
         line = line[m.end():].lstrip()
         args = []
         if line.startswith('('):
             i = line.find(')')
-            assert i!=-1,`line`
+            assert i!=-1,repr(line)
             line2 = item.apply_map(line[:i+1])
             for a in line2[1:-1].split(','):
                 a=a.strip()
@@ -771,12 +771,12 @@ class SubProgramStatement(BeginStatement, ProgramBlock,
         if isinstance(self, Function):
             self.result, suffix = parse_result(suffix, item)
             if suffix:
-                assert self.bind is None,`self.bind`
+                assert self.bind is None,repr(self.bind)
                 #self.bind, suffix = parse_result(suffix, item) # KGEN deletion
                 self.bind, suffix = parse_bind(suffix, item) # KGEN addition
             if self.result is None:
                 self.result = self.name
-        assert not suffix,`suffix`
+        assert not suffix,repr(suffix)
         self.args = args
         self.typedecl = None
         return BeginStatement.process_item(self)
@@ -790,7 +790,7 @@ class SubProgramStatement(BeginStatement, ProgramBlock,
         if self.typedecl is not None: # KGEN deletion
             # start of KGEN addtion
             if hasattr(self, 'typedecl') and self.typedecl is not None:
-                assert isinstance(self, Function),`self.__class__.__name__`
+                assert isinstance(self, Function),repr(self.__class__.__name__)
                 if not hasattr(self, 'result_in_typedecl') or not self.result_in_typedecl:
                     s += self.typedecl.tostr() + ' '
             elif hasattr(self.parent, 'funcresult_in_stmt') and self.name in self.parent.funcresult_in_stmt.keys():
@@ -842,7 +842,7 @@ class SubProgramStatement(BeginStatement, ProgramBlock,
                 stmt = content.pop(0)
                 while isinstance (stmt, Comment):
                     stmt = content.pop(0)
-                assert isinstance(stmt, self.end_stmt_cls),`stmt`
+                assert isinstance(stmt, self.end_stmt_cls),repr(stmt)
             elif isinstance(stmt, self.end_stmt_cls):
                 continue
             else:
@@ -1163,7 +1163,7 @@ class IfThen(BeginStatement):
     def process_item(self):
         item = self.item
         line = item.get_line()[2:-4].strip()
-        assert line[0]=='(' and line[-1]==')',`line`
+        assert line[0]=='(' and line[-1]==')',repr(line)
         self.expr = item.apply_map(line[1:-1].strip())
         self.construct_name = item.name
         return BeginStatement.process_item(self)
@@ -1233,7 +1233,7 @@ class If(BeginStatement):
         return
 
     def tostr(self):
-        assert len(self.content)==1,`self.content`
+        assert len(self.content)==1,repr(self.content)
 
         # start of KGEN addtion
         line = str(self.content[0]).lstrip()
@@ -1420,7 +1420,7 @@ class Type(BeginStatement, HasVariables, HasAttributes, AccessSpecs):
         i = line.find('(')
         if i!=-1:
             self.name = line[:i].rstrip()
-            assert line[-1]==')',`line`
+            assert line[-1]==')',repr(line)
             self.params = split_comma(line[i+1:-1].lstrip())
         else:
             self.name = line
@@ -1449,7 +1449,7 @@ class Type(BeginStatement, HasVariables, HasAttributes, AccessSpecs):
         for spec in self.specs:
             i = spec.find('(')
             if i!=-1:
-                assert spec.endswith(')'),`spec`
+                assert spec.endswith(')'),repr(spec)
                 s = spec[:i].rstrip().upper()
                 n = spec[i+1:-1].strip()
                 if s=='EXTENDS':
@@ -1457,7 +1457,7 @@ class Type(BeginStatement, HasVariables, HasAttributes, AccessSpecs):
                     continue
                 elif s=='BIND':
                     args,rest = parse_bind(spec)
-                    assert not rest,`rest`
+                    assert not rest,repr(rest)
                     spec = 'BIND(%s)' % (', '.join(args))
                 else:
                     spec = '%s(%s)' % (s,n)
@@ -1565,13 +1565,13 @@ class Enum(BeginStatement):
 
 ###################################################
 
-import statements
-import typedecl_statements
+from . import statements
+from . import typedecl_statements
 __all__.extend(statements.__all__)
 __all__.extend(typedecl_statements.__all__)
 
-from statements import *
-from typedecl_statements import *
+from .statements import *
+from .typedecl_statements import *
 
 f2py_stmt = [Threadsafe, FortranName, Depend, Check, CallStatement,
              CallProtoArgument]

@@ -7,12 +7,12 @@ Module content
 # kgen_search.py
 
 from kgutils import show_tree
-from kgparse import KGGenType
-import Fortran2003
+from .kgparse import KGGenType
+from . import Fortran2003
 #from typedecl_statements import TypeDeclarationStatement, TypeStmt, Procedure # TEEMP
-from typedecl_statements import TypeDeclarationStatement, TypeStmt
-from block_statements import Type, TypeDecl, Function, Subroutine, Interface, execution_part, Associate
-from statements import External, Common, SpecificBinding
+from .typedecl_statements import TypeDeclarationStatement, TypeStmt
+from .block_statements import Type, TypeDecl, Function, Subroutine, Interface, execution_part, Associate
+from .statements import External, Common, SpecificBinding
 from kgconfig import Config
 from collections import OrderedDict
 import logging
@@ -113,13 +113,13 @@ def f2003_search_unknowns(stmt, node, resolvers=None, gentype=None):
         if Config.search['promote_exception']:
             raise
         else:
-            print ''
-            print errmsg
-            print ''
-            print "'kgen.log' in output folder contains detail information of this error."
-            print "If you send the log file to 'kgen@ucar.edu', that could be very"
-            print "helpful for us to support this Fortran spec. in future KGEN version."
-            print ''
+            print('')
+            print(errmsg)
+            print('')
+            print("'kgen.log' in output folder contains detail information of this error.")
+            print("If you send the log file to 'kgen@ucar.edu', that could be very")
+            print("helpful for us to support this Fortran spec. in future KGEN version.")
+            print('')
             import sys
             sys.exit(-1)
 
@@ -152,9 +152,9 @@ def get_name_or_defer(stmt, node, resolvers, defer=True, gentype=None):
     """
 
     from kgutils import KGName, pack_innamepath, match_namepath
-    from kgparse import ResState
-    from kgextra import Intrinsic_Procedures
-    from base_classes import is_except
+    from .kgparse import ResState
+    from .kgextra import Intrinsic_Procedures
+    from .base_classes import is_except
 
     if node is None: return
 
@@ -200,15 +200,15 @@ def get_name_or_defer(stmt, node, resolvers, defer=True, gentype=None):
 
         # skip if excluded
         #if Config.exclude.has_key('namepath') and stmt.__class__ in execution_part:
-        if Config.exclude.has_key('namepath'):
-            for pattern, actions in Config.exclude['namepath'].iteritems():
+        if 'namepath' in Config.exclude:
+            for pattern, actions in Config.exclude['namepath'].items():
                 name = node.string.lower()
                 namepath = pack_innamepath(stmt, name) 
                 #logger.debug('%s and %s are being checked for exclusion'%(pattern, namepath))
                 if match_namepath(pattern, namepath):
                     #logger.debug('%s and %s are mathched for exclusion'%(pattern, namepath))
                     if not hasattr(stmt, 'exclude_names'): stmt.exclude_names = OrderedDict()
-                    if stmt.exclude_names.has_key(name):
+                    if name in stmt.exclude_names:
                         stmt.exclude_names[name].extend(actions)
                     else:
                         stmt.exclude_names[name] = actions
@@ -255,8 +255,8 @@ def search_Type_Declaration_Stmt(stmt, node, gentype=None):
     from kgutils import pack_innamepath, match_namepath
 
     # collect excluded names
-    if Config.exclude.has_key('namepath'):
-        for pattern, actions in Config.exclude['namepath'].iteritems():
+    if 'namepath' in Config.exclude:
+        for pattern, actions in Config.exclude['namepath'].items():
             decls = []
             if isinstance(node.items[2], Fortran2003.Entity_Decl):
                 decls.append(node.items[2].items[0].string.lower())
@@ -267,7 +267,7 @@ def search_Type_Declaration_Stmt(stmt, node, gentype=None):
                 namepath = pack_innamepath(stmt, decl) 
                 if match_namepath(pattern, namepath):
                     if not hasattr(stmt, 'exclude_names'): stmt.exclude_names = OrderedDict()
-                    if stmt.exclude_names.has_key(decl):
+                    if decl in stmt.exclude_names:
                         stmt.exclude_names[decl].extend(actions)
                     else:
                         stmt.exclude_names[decl] = actions
@@ -602,7 +602,7 @@ def search_Declaration_Type_Spec(stmt, node, gentype=None):
 def search_Data_Ref(stmt, node, gentype=None):
     """ Identifying a name in Data_Ref node"""
     from kgutils import KGName
-    from Fortran2003 import Name, Part_Ref
+    from .Fortran2003 import Name, Part_Ref
 
     # NOTE: to limit the scope of data saving in derived type,
     #       the last part_ref would be the one that has gentype=gentype
@@ -997,7 +997,7 @@ def search_Actual_Arg_Spec(stmt, node, gentype=None):
 
 def search_Data_Pointer_Object(stmt, node, gentype=None):
     """ Identifying a name in Data_Pointer_Object node"""
-    from Fortran2003 import Name
+    from .Fortran2003 import Name
 
     get_name_or_defer(stmt, node.items[0], res_value, gentype=gentype)
 

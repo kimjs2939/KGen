@@ -4,16 +4,16 @@
 import os
 import kgtool
 import kgutils
-import kgparse
+from . import kgparse
 import collections
 from kgconfig import Config
-import statements
+from . import statements
 
 class Parser(kgtool.KGTool):
 
     def run(self):
-        from kgsearch import f2003_search_unknowns
-        import kganalyze
+        from .kgsearch import f2003_search_unknowns
+        from . import kganalyze
 
         # preprocess if required
         for key, value in Config.include['import'].items():
@@ -42,7 +42,7 @@ class Parser(kgtool.KGTool):
             #resolve cs_stmt
             f2003_search_unknowns(cs_stmt, cs_stmt.f2003)
             if hasattr(cs_stmt, 'unknowns'):
-                for uname, req in cs_stmt.unknowns.iteritems():
+                for uname, req in cs_stmt.unknowns.items():
                     cs_stmt.resolve(req)
                     if not req.res_stmts:
                         raise kgutils.ProgramException('Resolution fail.')
@@ -53,14 +53,14 @@ class Parser(kgtool.KGTool):
         kganalyze.update_state_info(Config.parentblock['stmt'])
 
         # update state info of modules
-        for modname, moddict in Config.modules.iteritems():
+        for modname, moddict in Config.modules.items():
             modstmt = moddict['stmt']
             if modstmt != Config.topblock['stmt']:
                 kganalyze.update_state_info(moddict['stmt'])
 
 
     def add_geninfo_ancestors(self, stmt):
-        from block_statements import EndStatement
+        from .block_statements import EndStatement
 
         ancs = stmt.ancestors()
 

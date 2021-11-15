@@ -5,7 +5,7 @@ import os
 import stat
 import kgtool
 import kgutils
-import kgcompiler
+from . import kgcompiler
 from kgconfig import Config
 try:
     import configparser
@@ -78,6 +78,7 @@ class CompFlag(kgtool.KGTool):
         return None
 
     def _geninclude(self, stracepath, includepath):
+        import sys
 
         kgutils.logger.info('Creating KGen include file: %s'%includepath)
 
@@ -119,7 +120,12 @@ class CompFlag(kgtool.KGTool):
                             pos_last -= 1
                         if pos_last >= 0:
                             try:
-                                exec('exepath, cmdlist, env = %s'%line[pos_execve+len(STR_EX):(pos_last+1)])
+                                if sys.version_info < (3,0):
+                                    exec('exepath, cmdlist, env = %s'%line[pos_execve+len(STR_EX):(pos_last+1)])
+                                else:
+                                    vars = {}
+                                    exec('exepath, cmdlist, env = %s'%line[pos_execve+len(STR_EX):(pos_last+1)], globals(), vars)
+                                    exepath, cmdlist, env = vars['exepath'], vars['cmdlist'], vars['env']
                                 compid = cmdlist[0].split('/')[-1]
                                 if exepath and cmdlist and compid==cmdlist[0].split('/')[-1]:
                                     compiler = kgcompiler.CompilerFactory.createCompiler(compid)
@@ -145,7 +151,7 @@ class CompFlag(kgtool.KGTool):
                 options = incitems[-1][4]
 
                 if cfg.has_section(fname):
-                    print 'Warning: %s section is dupulicated.' % fname
+                    print('Warning: %s section is dupulicated.' % fname)
                 else:
                     cfg.add_section(fname)
                     cfg.set(fname,'compiler', compiler)

@@ -11,6 +11,8 @@ Created: May 2006
 -----
 """
 
+from __future__ import print_function
+
 __all__ = ['split_comma', 'specs_split_comma',
            'ParseError','AnalyzeError',
            'get_module_file','parse_bind','parse_result','is_name','parse_array_spec',
@@ -141,7 +143,7 @@ def parse_bind(line, item = None):
         newitem = None
     newline = newline[4:].lstrip()
     i = newline.find(')')
-    assert i!=-1,`newline`
+    assert i!=-1,repr(newline)
     args = []
     for a in specs_split_comma(newline[1:i].strip(), newitem, upper=True):
         args.append(a)
@@ -155,9 +157,9 @@ def parse_result(line, item = None):
         return None, line
     line = line[6:].lstrip()
     i = line.find(')')
-    assert i != -1,`line`
+    assert i != -1,repr(line)
     name = line[1:i].strip()
-    assert is_name(name),`name`
+    assert is_name(name),repr(name)
     return name, line[i+1:].lstrip()
 
 def filter_stmts(content, classes):
@@ -189,7 +191,7 @@ def get_module_files(directory, _cache={}):
         for name in module_line.findall(f.read()):
             name = name[1]
             if name in d:
-                print d[name],'already defines',name
+                print(d[name], 'already defines', name)
                 continue
             d[name] = fn
     _cache[directory] = d
@@ -229,8 +231,8 @@ def module_in_file(name, filename):
 def str2stmt(string, isfree=True, isstrict=False):
     """ Convert Fortran code to Statement tree.
     """
-    from readfortran import Line, FortranStringReader
-    from parsefortran import FortranParser
+    from. readfortran import Line, FortranStringReader
+    from .parsefortran import FortranParser
     reader = FortranStringReader(string, isfree, isstrict)
     parser = FortranParser(reader)
     parser.parse()
@@ -270,19 +272,32 @@ def show_item_on_failure(func, _exception_depth=[0]):
     def new_func(self):
         try:
             func(self)
-        except AnalyzeError, msg:
+        except AnalyzeError as msg:
             clsname = self.__class__.__name__
             self.error('%s.analyze error: %s' % (clsname,msg))
             traceback.print_exc()
-        except ParseError, msg:
+        except ParseError as msg:
             self.error('parse error: %s' % (msg))
-        except Exception, msg:
+        except Exception as msg:
             _exception_depth[0] += 1
             if _exception_depth[0]==1:
                 self.error('exception triggered here: %s %s' % (Exception, msg))
             raise
         _exception_depth[0] = 0
     return new_func
+
+# License: MIT
+# Credit: https://python-future.org/credits.html
+# Code: https://python-future.org/_modules/future/utils.html
+def with_metaclass(meta, *bases):
+    class metaclass(meta):
+        __call__ = type.__call__
+        __init__ = type.__init__
+        def __new__(cls, name, this_bases, d):
+            if this_bases is None:
+                return type.__new__(cls, name, (), d)
+            return meta(name, bases, d)
+    return metaclass('temporary_class', None, {})
 
 _classes_cache = {}
 class meta_classes(type):
@@ -296,12 +311,12 @@ class meta_classes(type):
             raise AttributeError('instance does not have attribute %r' % (name))
         return cls
 
-class classes(type):
+class classes(with_metaclass(meta_classes, type)):
     """Make classes available as attributes of this class.
 
     To add a class to the attributes list, one must use::
 
-      __metaclass__ = classes
+    __metaclass__ = classes
 
     in the definition of the class.
 
@@ -310,7 +325,7 @@ class classes(type):
     * decorate analyze methods with show_item_on_failure
     """
 
-    __metaclass__ = meta_classes
+    # __metaclass__ = meta_classes
 
     def __new__(metacls, name, bases, dict):
         if 'analyze' in dict:
@@ -318,4 +333,3 @@ class classes(type):
         cls = type.__new__(metacls, name, bases, dict)
         _classes_cache[name] = cls
         return cls
-
